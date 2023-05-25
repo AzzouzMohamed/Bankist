@@ -105,18 +105,26 @@ const deposit = accounts => {
   });
 };
 
-const calcDisplaySummary = function (movements) {
-  const incomes = movements
+const transferMoney = function (accounts) {
+  const receiver = accounts.find(
+    value => value.username === inputTransferTo.value
+  );
+  currentAccount.movements.push(-inputTransferAmount);
+  receiver.movements.push(inputTransferAmount);
+};
+
+const calcDisplaySummary = function (account) {
+  const incomes = account.movements
     .filter(mov => mov > 0)
     .reduce((acc, val) => acc + val, 0);
   labelSumIn.textContent = `${incomes}`;
 
-  const out = movements
+  const out = account.movements
     .filter(mov => mov < 0)
     .reduce((acc, val) => acc + val, 0);
   labelSumOut.textContent = `${Math.abs(out)}`;
 
-  const interest = movements
+  const interest = account.movements
     .filter(mov => mov > 0)
     .map(deposit => (deposit * 1.2) / 100)
     .filter((int, i, arr) => {
@@ -124,7 +132,7 @@ const calcDisplaySummary = function (movements) {
     })
     .reduce((acc, int) => acc + int, 0);
 
-  labelSumInterest.textContent = `${interest}`;
+  labelSumInterest.textContent = `${account.interestRate}`;
 };
 
 let currentAccount;
@@ -144,6 +152,9 @@ btnLogin.addEventListener('click', e => {
       currentAccount.owner.split(' ')[0]
     }`;
     containerApp.style.opacity = 100;
+    //Clear Input
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
     //Display movements
     displayMovements(currentAccount.movements);
 
@@ -151,9 +162,11 @@ btnLogin.addEventListener('click', e => {
     calcDisplayBalance(currentAccount.movements);
     //Display Summary
 
-    calcDisplaySummary(currentAccount.movements);
+    calcDisplaySummary(currentAccount);
   }
 });
+
+btnTransfer.addEventListener('click', transferMoney(currentAccount, accounts));
 
 /////////////////////////////////////////
 //Maximum
